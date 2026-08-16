@@ -90,6 +90,7 @@ Additional controls:
 | Charts | **ECharts** (via `echarts-for-react`) or **Plotly** |
 | Main Database | **MongoDB** (Users, Auth, File Metadata, Chart Specs) |
 | Analytical Engine | **DuckDB** (Fast columnar querying, grouping, aggregations) |
+| Connection Mgmt | DuckDB `Database` is a singleton to prevent file locking; `Connection` objects are per-query |
 | Excel Parsing | **SheetJS** or **Polars** (to parse and pipe into DuckDB) |
 | Validation | **Zod** |
 
@@ -125,6 +126,13 @@ Additional controls:
 7. Next.js API translates the request into a DuckDB SQL query.
 8. DuckDB instantly aggregates millions of rows and returns summary JSON.
 9. React frontend renders the interactive chart.
+
+### Connection Management
+
+- **File-Level Locking:** DuckDB uses file-level locking on the database file. Only one writer can hold the lock at a time.
+- **Problem:** Multiple `Database` instances competing for the lock cause *"Resource temporarily unavailable"* errors.
+- **Solution:** A singleton `Database` instance is cached on `globalThis`, ensuring it survives Hot Module Replacement (HMR) in Next.js dev mode.
+- **Per-Query Connections:** `Connection` objects are created per-query from the singleton `Database` instance, allowing concurrent read queries without lock contention.
 
 ---
 
@@ -211,6 +219,7 @@ FlexiViz/
 │   │   └── page.tsx        # Landing Page
 │   ├── components/         # React components (Upload, ChartBuilder, etc.)
 │   ├── lib/                # DuckDB & MongoDB connection clients
+│   │   └── duckdb.ts       # Singleton DuckDB Database/Connection pattern
 │   └── models/             # Mongoose schemas
 ├── public/
 ├── tailwind.config.js

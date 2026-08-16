@@ -1,0 +1,12 @@
+{
+  "project": {
+    "name": "FlexiViz",
+    "description": "Flexible Visualization - Self-service BI web app converting Excel to interactive charts"
+  },
+  "environment": "local-dev",
+  "language": "TypeScript",
+  "framework": {
+    "name": "Next.js",
+    "router": "App Router"
+  }
+}

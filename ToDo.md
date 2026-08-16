@@ -21,6 +21,7 @@ This file tracks the full scope and task list to build **FlexiViz** from scratch
 - Live execution of DuckDB SQL to aggregate data before sending it to the frontend.
 - Multiple chart types (bar, line, pie, donut, scatter, area, stacked).
 - Export charts (PNG/SVG) and filtered data (CSV).
+- Manage DuckDB connections as singletons to prevent file locking.
 
 ### Out of Scope (Phase 1)
 - Connecting live external databases (Postgres, MySQL).
@@ -45,8 +46,9 @@ This file tracks the full scope and task list to build **FlexiViz** from scratch
 - [ ] Build File Upload UI component.
 - [ ] Build Link Import UI component.
 - [ ] API: Handle file upload, save metadata to MongoDB.
-- [ ] API: Parse uploaded Excel file and ingest data into a new DuckDB table.
+- [ ] API: Parse uploaded Excel file and ingest data into a new DuckDB table using the singleton connection.
 - [ ] API: Handle link fetching and subsequent DuckDB ingestion.
+- [ ] Create `lib/duckdb.ts` — Singleton DuckDB `Database` instance on `globalThis` to prevent file locking across HMR/API route invocations.
 
 ### Phase 3 — Data Profiling & Chart Builder UI
 - [ ] API: `GET /api/datasets` to fetch user's files from MongoDB.
