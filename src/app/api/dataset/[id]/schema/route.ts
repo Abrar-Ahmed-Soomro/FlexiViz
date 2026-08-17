@@ -19,9 +19,10 @@ interface ColumnProfile {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -32,7 +33,7 @@ export async function GET(
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     await connectToDatabase();
 
-    const dataset = await Dataset.findOne({ _id: params.id, userId: decoded.userId }).lean();
+    const dataset = await Dataset.findOne({ _id: id, userId: decoded.userId }).lean();
     if (!dataset) {
       return NextResponse.json({ error: 'Dataset not found' }, { status: 404 });
     }

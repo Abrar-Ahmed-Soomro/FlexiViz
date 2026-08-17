@@ -7,9 +7,10 @@ import { env } from '@/lib/env';
 
 export async function GET(
   request: Request,
-  { params }: { params: { datasetId: string } }
+  { params }: { params: Promise<{ datasetId: string }> }
 ) {
   try {
+    const { datasetId } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -20,7 +21,7 @@ export async function GET(
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     await connectToDatabase();
 
-    const charts = await Chart.find({ userId: decoded.userId, datasetId: params.datasetId }).sort({ createdAt: -1 }).lean();
+    const charts = await Chart.find({ userId: decoded.userId, datasetId }).sort({ createdAt: -1 }).lean();
 
     return NextResponse.json({ charts });
   } catch (error) {
@@ -31,9 +32,10 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { datasetId: string } }
+  { params }: { params: Promise<{ datasetId: string }> }
 ) {
   try {
+    const { datasetId } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -53,7 +55,7 @@ export async function POST(
 
     const chart = new Chart({
       userId: decoded.userId,
-      datasetId: params.datasetId,
+      datasetId,
       name,
       config,
     });

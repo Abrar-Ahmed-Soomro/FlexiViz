@@ -4,12 +4,13 @@ import Dataset from '@/models/Dataset';
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     await connectToDatabase();
 
-    const dataset = await Dataset.findOne({ publicSlug: params.slug, isPublic: true }).lean();
+    const dataset = await Dataset.findOne({ publicSlug: slug, isPublic: true }).lean();
     if (!dataset) {
       return NextResponse.json({ error: 'Public dataset not found' }, { status: 404 });
     }

@@ -4,14 +4,15 @@ import Dataset from '@/models/Dataset';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
-import { getDuckDB } from '@/lib/duckdb';
+import { getDuckDB, checkpointDuckDB } from '@/lib/duckdb';
 import crypto from 'crypto';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -22,7 +23,7 @@ export async function PATCH(
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     await connectToDatabase();
 
-    const dataset = await Dataset.findOne({ _id: params.id, userId: decoded.userId });
+    const dataset = await Dataset.findOne({ _id: id, userId: decoded.userId });
     if (!dataset) {
       return NextResponse.json({ error: 'Dataset not found' }, { status: 404 });
     }
@@ -54,9 +55,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -67,7 +69,7 @@ export async function DELETE(
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     await connectToDatabase();
 
-    const dataset = await Dataset.findOne({ _id: params.id, userId: decoded.userId });
+    const dataset = await Dataset.findOne({ _id: id, userId: decoded.userId });
     if (!dataset) {
       return NextResponse.json({ error: 'Dataset not found' }, { status: 404 });
     }
@@ -85,7 +87,8 @@ export async function DELETE(
       console.error('Error dropping DuckDB table:', err);
     }
 
-    await Dataset.findByIdAndDelete(params.id);
+    await Dataset.findByIdAndDelete(id);
+    await checkpointDuckDB();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete dataset error:', error);
@@ -95,9 +98,10 @@ export async function DELETE(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -108,7 +112,7 @@ export async function GET(
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
     await connectToDatabase();
 
-    const dataset = await Dataset.findOne({ _id: params.id, userId: decoded.userId }).lean();
+    const dataset = await Dataset.findOne({ _id: id, userId: decoded.userId }).lean();
     if (!dataset) {
       return NextResponse.json({ error: 'Dataset not found' }, { status: 404 });
     }

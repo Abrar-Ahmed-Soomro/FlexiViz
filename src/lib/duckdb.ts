@@ -1,16 +1,22 @@
-import * as duckdb from 'duckdb';
+import type * as DuckDB from 'duckdb';
 import { env } from '@/lib/env';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+// Load the `duckdb` package at runtime via Node's require. A static or dynamic
+// import makes Turbopack statically trace into duckdb's node-pre-gyp
+// configuration, which currently panics the bundler during `next build`.
+// `serverExternalPackages` keeps it external so it is resolved at runtime.
+const duckdb = require('duckdb') as typeof DuckDB;
 
 const DUCKDB_PATH = env.DUCKDB_PATH;
 
 declare global {
-  var flexivizDb: duckdb.Database | undefined;
+  var flexivizDuckDB: DuckDB.Database | undefined;
 }
 
-let db: duckdb.Database | undefined;
-
-export async function getDuckDB(): Promise<duckdb.Database> {
-  if (!db) {
+export async function getDuckDB(): Promise<DuckDB.Database> {
+  if (!globalThis.flexivizDuckDB) {
     // Ensure data directory exists
     const fs = await import('fs');
     const path = await import('path');
@@ -19,22 +25,50 @@ export async function getDuckDB(): Promise<duckdb.Database> {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    db = new duckdb.Database(DUCKDB_PATH);
+    globalThis.flexivizDuckDB = new duckdb.Database(DUCKDB_PATH);
 
     // Warm up connection
+    const conn = globalThis.flexivizDuckDB.connect();
     await new Promise<void>((resolve, reject) => {
-      db!.all('SELECT 1', (err) => {
+      conn.all('SELECT 1', (err) => {
+        conn.close();
         if (err) reject(err);
         else resolve();
       });
     });
   }
-  return db;
+  return globalThis.flexivizDuckDB;
 }
 
-export async function getDuckDBConnection(): Promise<duckdb.Connection> {
+// Persist in-memory writes to disk so they survive a new Database instance
+// (duckdb keeps uncommitted state in a per-instance WAL).
+export async function checkpointDuckDB(): Promise<void> {
+  const conn = await getDuckDBConnection();
+  return new Promise((resolve, reject) => {
+    conn.run('CHECKPOINT', (err) => {
+      conn.close();
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
+export async function getDuckDBConnection(): Promise<DuckDB.Connection> {
   const database = await getDuckDB();
   return database.connect();
+}
+
+// DuckDB returns BIGINT as JS BigInt, which neither JSON nor Mongoose handle.
+// Convert BigInt values to Number for safe serialization/storage.
+export function normalizeRows<T = Record<string, unknown>>(rows: Record<string, unknown>[]): T[] {
+  return rows.map((row) => {
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(row)) {
+      const value = row[key];
+      out[key] = typeof value === 'bigint' ? Number(value) : value;
+    }
+    return out as T;
+  });
 }
 
 export async function queryDuckDB<T = Record<string, unknown>>(sql: string): Promise<T[]> {
@@ -46,7 +80,7 @@ export async function queryDuckDB<T = Record<string, unknown>>(sql: string): Pro
         reject(err);
       } else {
         conn.close();
-        resolve(rows as T[]);
+        resolve(normalizeRows<T>(rows as Record<string, unknown>[]));
       }
     });
   });

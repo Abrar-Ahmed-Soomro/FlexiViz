@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
 import * as XLSX from 'xlsx';
-import { getDuckDB, generateTableName, queryDuckDB, inferDuckDBType } from '@/lib/duckdb';
+import { getDuckDB, generateTableName, queryDuckDB, inferDuckDBType, checkpointDuckDB } from '@/lib/duckdb';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -103,11 +103,14 @@ export async function POST(request: Request) {
         if (val === '' || val === null || val === undefined) return null;
         return val;
       });
-      stmt.run(values as unknown[]);
+      stmt.run(...(values as unknown[]));
     }
 
     stmt.finalize();
     conn.close();
+
+    // Persist writes to disk so they are visible across processes
+    await checkpointDuckDB();
 
     // Get row count
     const rowCountResult = await queryDuckDB<{ count: number }>(`SELECT COUNT(*) as count FROM "${tableName}"`);
