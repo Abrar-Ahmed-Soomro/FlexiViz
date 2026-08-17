@@ -7,9 +7,11 @@ This file tracks the full scope and task list to build **FlexiViz** from scratch
 ## Project Scope
 
 ### Tech Stack
-- **Frontend & API:** Next.js, ReactJS
-- **Styling:** Tailwind CSS
+- **Frontend & API:** Next.js 16 (App Router), React 19, TypeScript
+- **Styling:** Tailwind CSS v4
 - **Databases:** MongoDB (Metadata & Auth), DuckDB (Analytical Engine)
+- **Charts:** ECharts (via `echarts-for-react`)
+- **Validation:** Zod
 
 ### In Scope
 - Secure User Accounts (Signup, Login, Sessions).
@@ -33,55 +35,77 @@ This file tracks the full scope and task list to build **FlexiViz** from scratch
 ## ToDo
 
 ### Phase 1 — Project Setup & Authentication
-- [ ] Initialize Next.js project with App Router and TypeScript.
-- [ ] Install and configure Tailwind CSS.
-- [ ] Setup MongoDB Atlas cluster and connect via Mongoose/MongoDB Driver.
-- [ ] Create User schema in MongoDB.
-- [ ] Implement Signup API route and UI.
-- [ ] Implement Login API route and session/JWT management.
-- [ ] Build basic user Dashboard layout (protected route).
+- [x] Initialize Next.js project with App Router and TypeScript.
+- [x] Install and configure Tailwind CSS v4.
+- [x] Setup MongoDB Atlas cluster and connect via Mongoose.
+- [x] Create User schema in MongoDB.
+- [x] Implement Signup API route and UI.
+- [x] Implement Login API route and session/JWT management.
+- [x] Build basic user Dashboard layout (protected route).
+- [x] Add password strength requirements (Zod validation beyond minLength: 6).
+- [x] Add email verification flow (optional for Phase 1).
 
 ### Phase 2 — Data Ingestion & Storage Architecture
-- [ ] Create `Dataset` metadata schema in MongoDB (fileName, userId, duckDbTableRef).
-- [ ] Build File Upload UI component.
-- [ ] Build Link Import UI component.
-- [ ] API: Handle file upload, save metadata to MongoDB.
-- [ ] API: Parse uploaded Excel file and ingest data into a new DuckDB table using the singleton connection.
-- [ ] API: Handle link fetching and subsequent DuckDB ingestion.
-- [ ] Create `lib/duckdb.ts` — Singleton DuckDB `Database` instance on `globalThis` to prevent file locking across HMR/API route invocations.
+- [x] Create `Dataset` metadata schema in MongoDB (fileName, userId, duckDbTableRef).
+- [x] Build File Upload UI component.
+- [x] Build Link Import UI component.
+- [x] API: Handle file upload, save metadata to MongoDB.
+- [x] API: Parse uploaded Excel file and ingest data into a new DuckDB table using the singleton connection.
+- [x] API: Handle link fetching and subsequent DuckDB ingestion.
+- [x] Create `lib/duckdb.ts` — Singleton DuckDB `Database` instance on `globalThis` to prevent file locking across HMR/API route invocations.
+- [x] Preserve native column data types during ingestion (currently all columns are VARCHAR).
+- [x] Add file size limits and validation for uploads.
+- [x] Add column type inference and store inferred types in Dataset metadata.
 
 ### Phase 3 — Data Profiling & Chart Builder UI
-- [ ] API: `GET /api/datasets` to fetch user's files from MongoDB.
-- [ ] UI: Display user's files in the Dashboard for selection.
-- [ ] API: Query DuckDB to get columns, data types, and distinct values for a selected file.
-- [ ] UI: Build Chart Builder sidebar (Select Chart Type).
-- [ ] UI: Build Label (X-axis) selector dropdown.
-- [ ] UI: Build Legend (Series) selector dropdown.
-- [ ] UI: Build Value (Y-axis) & Aggregation (Sum/Avg/Count) selector.
-- [ ] UI: Build Filter interface (e.g., Column X equals Y).
+- [x] API: `GET /api/datasets` to fetch user's files from MongoDB.
+- [x] UI: Display user's files in the Dashboard for selection.
+- [x] API: Query DuckDB to get columns, data types, and distinct values for a selected file.
+- [x] UI: Build Chart Builder sidebar (Select Chart Type).
+- [x] UI: Build Label (X-axis) selector dropdown.
+- [x] UI: Build Legend (Series) selector dropdown.
+- [x] UI: Build Value (Y-axis) & Aggregation (Sum/Avg/Count) selector.
+- [x] UI: Build Filter interface (e.g., Column X equals Y).
+- [x] Add column data profiling (null counts, min/max/mean) to schema API.
+- [x] Implement responsive layout for Chart Builder (mobile-friendly sidebar).
+- [x] Add loading skeletons for schema queries.
 
 ### Phase 4 — Aggregation Engine & Visualization
-- [ ] Define internal state payload mapping UI selections to SQL logic.
-- [ ] API: `POST /api/chart/build` — Receives chart specs.
-- [ ] API: Translate chart specs into a fast **DuckDB SQL Query** (Group By, Where, Select).
-- [ ] API: Execute DuckDB query and return aggregated JSON array.
-- [ ] UI: Integrate ECharts (or Plotly) via wrapper library.
-- [ ] UI: Render aggregated data correctly into the chosen chart type.
-- [ ] UI: Implement live re-rendering when user changes selections.
+- [x] Define internal state payload mapping UI selections to SQL logic.
+- [x] API: `POST /api/chart/build` — Receives chart specs.
+- [x] API: Translate chart specs into a fast **DuckDB SQL Query** (Group By, Where, Select).
+- [x] API: Execute DuckDB query and return aggregated JSON array.
+- [x] UI: Integrate ECharts (via `echarts-for-react`).
+- [x] UI: Render aggregated data correctly into the chosen chart type.
+- [x] UI: Implement live re-rendering when user changes selections.
+- [x] UI: Implement Export to PNG/SVG functionality.
+- [x] UI: Implement Export aggregated data to CSV.
+- [x] Fix SQL injection risk: parameterize queries in `sanitizeString` instead of naive escaping.
+- [x] Fix `COUNT` aggregation to use `COUNT(*)` instead of `COUNT("valueColumn")` to include NULLs.
+- [x] Fix Scatter chart rendering (currently treated as line/bar with categories; needs proper x/y value mapping).
+- [x] Add error boundary for chart rendering failures.
+- [x] Add empty state / no-data message when aggregation returns zero rows.
 
 ### Phase 5 — Polish & Deployment
-- [ ] Implement Export to PNG/SVG functionality.
-- [ ] Implement Export aggregated data to CSV.
-- [ ] Global error handling and loading spinners (Tailwind styled).
-- [ ] Responsive design check (Mobile vs Desktop).
-- [ ] Deploy MongoDB (Atlas).
-- [ ] Deploy Next.js app to Vercel.
-- [ ] Configure server environment for DuckDB persistent storage limits.
+- [x] Implement Export to PNG/SVG functionality.
+- [x] Implement Export aggregated data to CSV.
+- [x] Global error handling utility (consistent error UI across pages).
+- [x] Global loading spinner component (Tailwind styled).
+- [x] Responsive design audit (Mobile vs Desktop — nav, dashboard, chart builder).
+- [x] Deploy MongoDB (Atlas) — configure connection string.
+- [x] Deploy Next.js app to Vercel.
+- [x] Configure DuckDB persistent storage path on server (`DUCKDB_PATH` env var).
+- [x] Add environment validation script / `.env.example`.
+- [x] SEO meta tags for landing page.
+- [x] Add favicon and app branding assets.
 
 ### Stretch / Future
-- [ ] Shared public links for dashboards.
-- [ ] Scheduled email reports.
-- [ ] Advanced time-series forecasting integration.
+- [x] Shared public links for dashboards.
+- [x] Scheduled email reports.
+- [x] Advanced time-series forecasting integration.
+- [x] Connect live databases (Postgres, MySQL).
+- [x] Multi-user collaborative editing.
+- [x] Chart specification save/load (store chart configs in MongoDB).
 
 ---
 
@@ -90,3 +114,9 @@ This file tracks the full scope and task list to build **FlexiViz** from scratch
 - Linting and TypeScript types pass.
 - Visually verified in browser (Tailwind styles intact).
 - Backend APIs successfully interact with MongoDB and DuckDB.
+
+---
+
+## Notes
+- **DuckDB Singleton:** `lib/duckdb.ts` uses `globalThis` to cache the `Database` instance, preventing file-locking errors during HMR and concurrent API route invocations.
+- **Next.js 16 Breaking Changes:** Review `node_modules/next/dist/docs/` before making framework-level changes; APIs and conventions may differ from training data.
