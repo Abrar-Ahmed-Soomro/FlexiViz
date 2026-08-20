@@ -14,7 +14,7 @@ Turn Excel data into interactive visualizations with zero coding required.
 
 - Node.js 18+
 - MongoDB Atlas cluster (or local MongoDB)
-- npm or yarn
+- pnpm (preferred)
 
 ## Quick Start
 
@@ -26,7 +26,7 @@ Turn Excel data into interactive visualizations with zero coding required.
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Configure environment variables**
@@ -40,7 +40,7 @@ Turn Excel data into interactive visualizations with zero coding required.
 
 4. **Run the development server**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 5. **Open the app**
@@ -50,10 +50,10 @@ Turn Excel data into interactive visualizations with zero coding required.
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+| `pnpm run dev` | Start development server |
+| `pnpm run build` | Build for production |
+| `pnpm run start` | Start production server |
+| `pnpm run lint` | Run ESLint |
 
 ## Project Structure
 

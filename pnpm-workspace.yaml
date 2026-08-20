@@ -1,0 +1,3 @@
+allowBuilds:
+  duckdb: false
+  unrs-resolver: false

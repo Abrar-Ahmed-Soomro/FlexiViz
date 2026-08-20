@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileSpreadsheet } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 interface UploadZoneProps {
   onUpload: (file: File) => Promise<void>;
