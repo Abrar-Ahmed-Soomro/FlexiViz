@@ -22,11 +22,22 @@ async function connectToDatabase() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongooseInstance) => {
-      return mongooseInstance;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI as string, opts)
+      .then((mongooseInstance) => {
+        cached.conn = mongooseInstance;
+        return mongooseInstance;
+      })
+      .catch((err) => {
+        cached.promise = null;
+        cached.conn = null;
+        throw err;
+      });
   }
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    throw err;
+  }
   return cached.conn;
 }
 

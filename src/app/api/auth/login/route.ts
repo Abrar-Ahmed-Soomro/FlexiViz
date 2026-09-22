@@ -39,10 +39,13 @@ export async function POST(request: Request) {
       .setExpirationTime(env.JWT_EXPIRES_IN)
       .sign(new TextEncoder().encode(env.JWT_SECRET));
 
+    const forwardedProto = request.headers.get('x-forwarded-proto');
+    const isHttps = new URL(request.url).protocol === 'https:' || forwardedProto === 'https';
+
     const response = NextResponse.json({ user: { _id: user._id.toString(), email: user.email } });
     response.cookies.set('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
